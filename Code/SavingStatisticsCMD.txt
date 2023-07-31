@@ -1,0 +1,953 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <set>
+#include <map>
+#include <unordered_map>
+#include <algorithm>
+using namespace std;
+struct DyadPair {
+    std::string sender;
+    std::string reciever;
+    int count;
+    int count_out;
+    int countisp;
+    std::set<std::string> partners; // define the respective partner Set
+    std::vector<std::string> counter; // define the respective pair count 
+};
+
+struct IspDyadPair {
+    std::string sender;
+    std::string reciever;
+    int countisp;
+};
+
+struct OspDyadPair {
+    std::string sender;
+    std::string reciever;
+    int countisp;
+};
+
+struct ItpDyadPair {
+    std::string sender;
+    std::string reciever;
+    int countitp;
+    std::vector<std::string> main_in_the_middle;
+};
+
+// ============== Global Data for Outdegree =================
+  // create unordered_map for outdegree
+std::unordered_map<std::string, DyadPair> out_degree; // key is string and value is a DyadPair object
+string dyadOut;
+DyadPair dyad_pair_out = {};
+
+//           ============
+
+//         === Reciprocity ===
+std::unordered_map<std::string, DyadPair> recipro; // key is string and value is a DyadPair object
+std::string dyad_rec = "";
+DyadPair dyad_pair_rec = {};
+
+
+
+
+void itp(std::unordered_map<std::string, DyadPair> pairs) {
+    const std::string file_path = "E:\\paelene project\\save_result\\itp.txt"; // file path
+    std::ofstream output_file(file_path, std::ios_base::app); // open file in append mode
+    if (!output_file.is_open()) {
+        std::cout << "Unable to open output file!" << std::endl;
+        return;
+    }
+    output_file << "==============" << std::endl;
+     cout << "====== ITP" << endl;
+    std::vector<std::pair<std::string, std::string>> sender_receiver_pairs;
+    std::unordered_map<std::string, ItpDyadPair> itp_pair; // key is string and value is a DyadPair object
+    ItpDyadPair itpdyad_pair;
+
+    for (const auto& pair : pairs) {
+        sender_receiver_pairs.push_back(std::make_pair(pair.second.sender, pair.second.reciever));
+    }
+
+    int event = 1;
+    for (size_t i = 0; i < sender_receiver_pairs.size(); i++) {
+
+        const auto& currentPair = sender_receiver_pairs[i];
+        std::string value;
+        for (size_t j = 0; j < i; j++) {
+            const auto& previousPair = sender_receiver_pairs[j];
+            string dyad = "";
+            //////////////////////////////////////////
+
+            if (previousPair.second == currentPair.first) { // matching 
+                value = previousPair.second;
+
+                bool exists = std::find(itp_pair[dyad].main_in_the_middle.begin(), itp_pair[dyad].main_in_the_middle.end(), value) != itp_pair[dyad].main_in_the_middle.end();
+                // dyad = previousPair.first + currentPair.second;
+
+                //dyad = (previousPair.first < currentPair.second) ? (previousPair.first + currentPair.second) : (previousPair.first + currentPair.second);
+
+                dyad = previousPair.first + currentPair.second;
+
+                if (exists) {
+
+
+
+                    // Check to see if the pair has already been counted
+                    if (itp_pair.find(dyad) != itp_pair.end()) { // if pair already exists
+
+
+                    }
+                    else {
+                        if (previousPair.first != currentPair.second) {
+                            itpdyad_pair = { currentPair.second, previousPair.first };
+                            itpdyad_pair.countitp = 1;
+                            itp_pair[dyad] = itpdyad_pair;
+                            //
+                            std::cout << currentPair.second << " " << previousPair.first;
+                            std::cout << " ITP: " << itp_pair[dyad].countitp << endl;
+                            output_file << itp_pair[dyad].countitp << std::endl;
+                        }
+                    }
+
+                } // end of if
+                else {
+                    // Value is unique, add it to the vector
+                    if (previousPair.first != currentPair.second) {
+                        itp_pair[dyad].main_in_the_middle.push_back(value);
+                    }
+
+
+
+                    if (itp_pair.find(dyad) != itp_pair.end()) { // if pair already exists
+
+                        itp_pair[dyad].countitp++;
+                         std::cout << currentPair.second << " " << previousPair.first;
+                         std::cout << " ITP: " << itp_pair[dyad].countitp << endl;
+                        output_file << itp_pair[dyad].countitp << std::endl;
+                    }
+                    else {
+
+                        if (previousPair.first != currentPair.second) {
+                            itpdyad_pair = { currentPair.second, previousPair.first };
+                            itpdyad_pair.countitp = 1;
+                            itp_pair[dyad] = itpdyad_pair;
+                              cout << currentPair.second << " " << previousPair.first;
+                              cout << " ITP: " << itp_pair[dyad].countitp << endl;
+                            output_file << itp_pair[dyad].countitp << std::endl;
+                        }
+
+                    } // end of else 
+
+
+
+                } // end of else
+
+
+
+            } // end of if 
+            //////////////////////////////// end of Part 1
+
+            else if (previousPair.first == currentPair.second) {
+                value = previousPair.first;
+
+                bool exists = std::find(itp_pair[dyad].main_in_the_middle.begin(), itp_pair[dyad].main_in_the_middle.end(), value) != itp_pair[dyad].main_in_the_middle.end();
+                dyad = currentPair.first + previousPair.second;
+                if (exists) {
+                    // Check to see if the pair has already been counted
+                    if (itp_pair.find(dyad) != itp_pair.end()) { // if pair already exists
+
+
+                    }
+                    else {
+
+                        if (currentPair.first != previousPair.second) {
+                            itpdyad_pair = { previousPair.second,currentPair.first };
+                            itpdyad_pair.countitp = 1;
+                            itp_pair[dyad] = itpdyad_pair;
+                             cout << previousPair.second << " " << currentPair.first;
+                             cout << " ITP: " << itp_pair[dyad].countitp << endl;
+                            output_file << itp_pair[dyad].countitp << std::endl;
+                        }
+                    }
+
+                } // end of if
+                else {
+                    // Value is unique, add it to the vector
+                    if (currentPair.first != previousPair.second) {
+                        itp_pair[dyad].main_in_the_middle.push_back(value); // add main_in_the_middl in respective itp_pair[dyad]
+                    }
+
+
+
+                    if (itp_pair.find(dyad) != itp_pair.end()) { // if pair already exists
+
+                        itp_pair[dyad].countitp++;
+                         cout << previousPair.second << " " << currentPair.first;
+                         cout << " ITP: " << itp_pair[dyad].countitp << endl;
+                        output_file << itp_pair[dyad].countitp << std::endl;
+                    }
+                    else {
+
+                        if (currentPair.first != previousPair.second) {
+                            itpdyad_pair = { previousPair.second, currentPair.first };
+                            itpdyad_pair.countitp = 1;
+                            itp_pair[dyad] = itpdyad_pair;
+                             cout << previousPair.second << " " << currentPair.first;
+                             cout << " ITP: " << itp_pair[dyad].countitp << endl;
+                            output_file << itp_pair[dyad].countitp << std::endl;
+                        }
+
+                    } // end of else 
+
+
+
+                } // end of else
+            }
+
+
+            ///////////////// part 2
+
+
+
+        } // end of inner loop
+        event++;
+
+    } // end of outerloop
+    output_file.close();
+} // end of function
+
+void otp(std::unordered_map<std::string, DyadPair> pairs) {
+    const std::string file_path = "E:\\paelene project\\save_result\\otp.txt"; // file path
+    std::ofstream output_file(file_path, std::ios_base::app); // open file in append mode
+    if (!output_file.is_open()) {
+        std::cout << "Unable to open output file!" << std::endl;
+        return;
+    }
+    output_file << "==============" << std::endl;
+    cout << "====== OTP" << endl;
+    std::vector<std::pair<std::string, std::string>> sender_receiver_pairs;
+    std::unordered_map<std::string, ItpDyadPair> itp_pair; // key is string and value is a DyadPair object
+    ItpDyadPair itpdyad_pair;
+    //std::vector<std::string> main_in_the_middle;
+
+    for (const auto& pair : pairs) {
+        sender_receiver_pairs.push_back(std::make_pair(pair.second.sender, pair.second.reciever));
+    }
+
+    int event = 1;
+    for (size_t i = 0; i < sender_receiver_pairs.size(); i++) {
+
+        const auto& currentPair = sender_receiver_pairs[i];
+        std::string value;
+        for (size_t j = 0; j < i; j++) {
+            const auto& previousPair = sender_receiver_pairs[j];
+            string dyad = "";
+            //////////////////////////////////////////
+
+            if (previousPair.second == currentPair.first) { // matching 
+                value = previousPair.second;
+
+                bool exists = std::find(itp_pair[dyad].main_in_the_middle.begin(), itp_pair[dyad].main_in_the_middle.end(), value) != itp_pair[dyad].main_in_the_middle.end();
+                dyad = previousPair.first + currentPair.second;
+                //if (concatenated1 == concatenated2) {
+                   // dyad = concatenated1;
+                    //cout << "dyad " << dyad << endl;
+              //  }
+                if (exists) {
+
+
+
+                    // Check to see if the pair has already been counted
+                    if (itp_pair.find(dyad) != itp_pair.end()) { // if pair already exists
+
+
+                    }
+                    else {
+                        if (previousPair.first != currentPair.second) {
+                            itpdyad_pair = { previousPair.first ,currentPair.second };
+                            itpdyad_pair.countitp = 1;
+                            itp_pair[dyad] = itpdyad_pair;
+                             std::cout << previousPair.first << " " << currentPair.second;
+                             std::cout << " OTP: " << itp_pair[dyad].countitp << endl;
+                            output_file << itp_pair[dyad].countitp << std::endl;
+                        }
+                    }
+
+                } // end of if
+                else {
+                    // Value is unique, add it to the vector
+                    if (previousPair.first != currentPair.second) {
+                        itp_pair[dyad].main_in_the_middle.push_back(value);
+                    }
+
+
+
+                    if (itp_pair.find(dyad) != itp_pair.end()) { // if pair already exists
+
+                        itp_pair[dyad].countitp++;
+                         std::cout << previousPair.first << " " << currentPair.second;
+                         std::cout << " OTP: " << itp_pair[dyad].countitp << endl;
+                        output_file << itp_pair[dyad].countitp << std::endl;
+
+                    }
+                    else {
+
+                        if (previousPair.first != currentPair.second) {
+                            itpdyad_pair = { previousPair.first ,currentPair.second };
+                            itpdyad_pair.countitp = 1;
+                            itp_pair[dyad] = itpdyad_pair;
+                              cout << previousPair.first << " " << currentPair.second;
+                              cout << " OTP: " << itp_pair[dyad].countitp << endl;
+                            output_file << itp_pair[dyad].countitp << std::endl;
+                        }
+
+                    } // end of else 
+
+
+
+                } // end of else
+
+
+
+            } // end of if 
+            //////////////////////////////// end of Part 1
+
+            else if (previousPair.first == currentPair.second) {
+                value = previousPair.first;
+
+                bool exists = std::find(itp_pair[dyad].main_in_the_middle.begin(), itp_pair[dyad].main_in_the_middle.end(), value) != itp_pair[dyad].main_in_the_middle.end();
+
+                dyad = currentPair.first + previousPair.second;
+                //if (concatenated1 == concatenated2) {
+                  //  dyad = concatenated1;
+                    //cout << "dyad " << dyad << endl;
+               // }
+                if (exists) {
+
+
+
+                    // Check to see if the pair has already been counted
+                    if (itp_pair.find(dyad) != itp_pair.end()) { // if pair already exists
+
+
+                    }
+                    else {
+
+                        if (currentPair.first != previousPair.second) {
+                            itpdyad_pair = { currentPair.first ,previousPair.second };
+                            itpdyad_pair.countitp = 1;
+                            itp_pair[dyad] = itpdyad_pair;
+                             cout << currentPair.first << " " << previousPair.second;
+                             cout << " OTP: " << itp_pair[dyad].countitp << endl;
+                            output_file << itp_pair[dyad].countitp << std::endl;
+                        }
+                    }
+
+                } // end of if
+                else {
+                    // Value is unique, add it to the vector
+                    if (currentPair.first != previousPair.second) {
+                        itp_pair[dyad].main_in_the_middle.push_back(value); // add main_in_the_middl in respective itp_pair[dyad]
+                    }
+
+
+
+                    if (itp_pair.find(dyad) != itp_pair.end()) { // if pair already exists
+
+                        itp_pair[dyad].countitp++;
+                         cout << currentPair.first << " " << previousPair.second;
+                         cout << " OTP: " << itp_pair[dyad].countitp << endl;
+                        output_file << itp_pair[dyad].countitp << std::endl;
+
+                    }
+                    else {
+
+                        if (currentPair.first != previousPair.second) {
+                            itpdyad_pair = { currentPair.first ,previousPair.second };
+                            itpdyad_pair.countitp = 1;
+                            itp_pair[dyad] = itpdyad_pair;
+                              cout << currentPair.first << " " << previousPair.second;
+                              cout << " OTP: " << itp_pair[dyad].countitp << endl;
+                            output_file << itp_pair[dyad].countitp << std::endl;
+                        }
+
+                    } // end of else 
+
+
+
+                } // end of else
+            }
+
+
+            ///////////////// part 2
+
+
+
+        } // end of inner loop
+        event++;
+
+    } // end of outerloop
+    output_file.close();
+} // end of function 
+
+void osp(std::unordered_map<std::string, DyadPair> pairs) {
+    const std::string file_path = "E:\\paelene project\\save_result\\osp.txt"; // file path
+    std::ofstream output_file(file_path, std::ios_base::app); // open file in append mode
+    if (!output_file.is_open()) {
+        std::cout << "Unable to open output file!" << std::endl;
+        return;
+    }
+    output_file << "==============" << std::endl;
+     cout << "======   OSP   =============" << endl;
+    cout << endl << endl << endl;
+    // data variables
+    std::vector<std::pair<std::string, std::string>> sender_receiver_pairs;
+    std::unordered_map<std::string, DyadPair> dyad_pairs; // key is string and value is a DyadPair object
+    std::map<std::string, int> countMap; // key is of type <string> and value is of type <int>
+    // std::unordered_map<std::vector<std::string>, int>  pairCounter;
+    // std::unordered_map<std::pair<std::string, std::string>, int> pairCounter;
+    std::unordered_map<std::string, IspDyadPair> isp_; // key is string and value is a DyadPair object
+    IspDyadPair ispdyad_pair;
+    // string dyad;
+    // IspDyadPair dyad_pair = {};
+    int minOccurrence;
+    for (const auto& pair : pairs) {
+        sender_receiver_pairs.push_back(std::make_pair(pair.second.reciever, pair.second.sender));
+    }
+    //==========================================
+
+
+
+    // Process the sender-receiver pairs
+    for (const auto& pair : sender_receiver_pairs) {
+        const std::string& sender = pair.first;
+        const std::string& receiver = pair.second;
+
+        // Check if the dyad exists in the dyad_pairs map
+        if (dyad_pairs.find(sender) != dyad_pairs.end()) {
+            // Increment the count
+            dyad_pairs[sender].count++;
+
+            dyad_pairs[sender].partners.insert(receiver);
+            // Add the receiver to the partners set
+            dyad_pairs[sender].counter.push_back(receiver);
+
+        }
+
+        else {
+            // Create a new DyadPair object
+            DyadPair newDyadPair;
+            newDyadPair.count = 1;
+            newDyadPair.partners.insert(receiver);
+            newDyadPair.counter.push_back(receiver);
+
+            // Insert the new DyadPair into the dyad_pairs map
+            dyad_pairs[sender] = newDyadPair;
+        }
+    }
+
+    // Print the ISP data for each sender
+    for (const auto& pair : dyad_pairs) {
+
+
+        // Check if count is 1, then display 0
+        if (pair.second.count == 1) {
+
+        }
+        else {
+
+            if (pair.second.partners.size() > 1) {
+
+
+
+                // Count the occurrence of elements in the vector
+                for (const auto& element : pair.second.counter) {
+                    countMap[element]++;
+                }
+
+                // Find the minimum occurrence
+                minOccurrence = pair.second.counter.size(); // Initialize with a value greater than the vector size
+                std::string minElement;
+
+                for (const auto& entry : countMap) {
+                    if (entry.second < minOccurrence) {
+                        minOccurrence = entry.second;
+                        minElement = entry.first;
+                    }
+                }
+                // write the sender to the CSV File
+
+                // count ea
+
+               // std::cout << "Counter : " << minOccurrence << std::endl;
+
+
+
+
+
+                // Iterate through each unique pair of elements
+                auto first = pair.second.partners.begin();
+                while (first != pair.second.partners.end()) {
+                    auto second = std::next(first);
+                    while (second != pair.second.partners.end()) {
+                        //std::cout << "(" << *first << "\", \"" << *second << ")" << std::endl;
+                        //dyad = *first + *second;
+
+                        string dyad = "";
+                        dyad = (*first < *second) ? (*first + *second) : (*second + *first);
+
+                        // Check to see if the pair has already been counted
+                        if (isp_.find(dyad) == isp_.end()) {
+                            // The pair has not been counted yet, so add it to the map
+                            //IspDyadPair ispdyad_pair;
+                            ispdyad_pair = { *first ,*second };
+                            ispdyad_pair.countisp = 1;
+                            isp_[dyad] = ispdyad_pair;
+                            //cout << *first<< " " << *second;
+                        }
+                        else {
+                            // The pair has already been counted, so increment the count
+                            isp_[dyad].countisp++;
+                        }
+                         cout << *first << " " << *second;
+                         cout << " OSP: " << isp_[dyad].countisp << endl;
+                        output_file << isp_[dyad].countisp << std::endl;
+                        ++second;
+                    } // end of inner while
+                    ++first;
+
+
+
+                } // end of outer while
+
+
+              //  std::cout << endl;
+                //std::cout << std::endl;
+            } // end of if
+
+        } // end of else
+
+    } // end of for
+
+    output_file.close();
+
+
+
+}// end of osp
+
+
+
+void isp(std::unordered_map<std::string, DyadPair> pairs) {
+    const std::string file_path = "E:\\paelene project\\save_result\\isp.txt"; // file path
+    std::ofstream output_file(file_path, std::ios_base::app); // open file in append mode
+    if (!output_file.is_open()) {
+        std::cout << "Unable to open output file!" << std::endl;
+        return;
+    }
+    output_file << "==============" << std::endl;
+    cout << "======   ISP   =============" << endl;
+    cout << endl << endl << endl;
+     // data variables
+    std::vector<std::pair<std::string, std::string>> sender_receiver_pairs;
+    std::unordered_map<std::string, DyadPair> dyad_pairs; // key is string and value is a DyadPair object
+    std::map<std::string, int> countMap; // key is of type <string> and value is of type <int>
+    // std::unordered_map<std::vector<std::string>, int>  pairCounter;
+    // std::unordered_map<std::pair<std::string, std::string>, int> pairCounter;
+    std::unordered_map<std::string, IspDyadPair> isp_; // key is string and value is a DyadPair object
+    IspDyadPair ispdyad_pair;
+    // string dyad;
+    // IspDyadPair dyad_pair = {};
+    int signal = 0; // to signal the respective sender
+    int minOccurrence;
+    for (const auto& pair : pairs) {
+        sender_receiver_pairs.push_back(std::make_pair(pair.second.sender, pair.second.reciever));
+    }
+    //==========================================
+
+
+
+    // Process the sender-receiver pairs
+    for (const auto& pair : sender_receiver_pairs) {
+        const std::string& sender = pair.first;
+        const std::string& receiver = pair.second;
+
+        // Check if the dyad exists in the dyad_pairs map
+        if (dyad_pairs.find(sender) != dyad_pairs.end()) {
+            // Increment the count
+            dyad_pairs[sender].count++;
+
+            dyad_pairs[sender].partners.insert(receiver);
+            // Add the receiver to the partners set
+            dyad_pairs[sender].counter.push_back(receiver);
+
+        }
+
+        else {
+            // Create a new DyadPair object
+            DyadPair newDyadPair;
+            newDyadPair.count = 1;
+            newDyadPair.partners.insert(receiver);
+            newDyadPair.counter.push_back(receiver);
+
+            // Insert the new DyadPair into the dyad_pairs map
+            dyad_pairs[sender] = newDyadPair;
+        }
+    }
+
+    // Print the ISP data for each sender
+    for (const auto& pair : dyad_pairs) {
+
+
+        // Check if count is 1, then display 0
+        if (pair.second.count == 1) {
+
+        }
+        else {
+
+            if (pair.second.partners.size() > 1) {
+
+
+
+                // Count the occurrence of elements in the vector
+                for (const auto& element : pair.second.counter) {
+                    countMap[element]++;
+                }
+
+                // Find the minimum occurrence
+                minOccurrence = pair.second.counter.size(); // Initialize with a value greater than the vector size
+                std::string minElement;
+
+                for (const auto& entry : countMap) {
+                    if (entry.second < minOccurrence) {
+                        minOccurrence = entry.second;
+                        minElement = entry.first;
+                    }
+                }
+                // write the sender to the CSV File
+
+
+
+
+
+                // Iterate through each unique pair of elements
+                auto first = pair.second.partners.begin();
+                while (first != pair.second.partners.end()) {
+                    auto second = std::next(first);
+                    while (second != pair.second.partners.end()) {
+                        //std::cout << "(" << *first << "\", \"" << *second << ")" << std::endl;
+                        //dyad = *first + *second;
+
+                        string dyad = "";
+                        dyad = (*first < *second) ? (*first + *second) : (*second + *first);
+
+                        // Check to see if the pair has already been counted
+                        if (isp_.find(dyad) == isp_.end()) {
+                            // The pair has not been counted yet, so add it to the map
+                            //IspDyadPair ispdyad_pair;
+                            ispdyad_pair = { *first ,*second };
+                            ispdyad_pair.countisp = 1;
+                            isp_[dyad] = ispdyad_pair;
+                            //cout << *first<< " " << *second;
+                        }
+                        else {
+                            // The pair has already been counted, so increment the count
+                            isp_[dyad].countisp++;
+                        }
+                         cout << *first << " " << *second;
+                         cout << " ISP: " << isp_[dyad].countisp << endl;
+                        output_file << isp_[dyad].countisp << std::endl;
+                        ++second;
+                    } // end of inner while
+                    ++first;
+
+
+
+                } // end of outer while
+
+
+               // std::cout << endl;
+               // std::cout << std::endl;
+            } // end of if
+
+        } // end of else
+
+    } // end of for
+
+    output_file.close();
+
+
+
+}// en of isp
+
+void indegree(std::unordered_map<std::string, DyadPair> pairs) {
+    const std::string file_path = "E:\\paelene project\\save_result\\indegree.txt"; // file path
+    std::ofstream output_file(file_path, std::ios_base::app); // open file in append mode
+    if (!output_file.is_open()) {
+        std::cout << "Unable to open output file!" << std::endl;
+        return;
+    }
+    output_file << "==============" << std::endl;
+    cout << "======   Indegree   =============" << endl;
+    cout << endl << endl << endl;
+     // create unordered_map for outdegree
+    std::unordered_map<std::string, DyadPair> in_degree; // key is string and value is a DyadPair object
+    string dyad;
+    DyadPair dyad_pair = {};
+    for (const auto& pair : pairs) { // building outdegree
+        dyad = pair.second.reciever;
+        //cout << "Counter = " << pair.second.count <<
+        dyad_pair = { pair.second.reciever ,"", pair.second.count };
+
+        if (in_degree.find(dyad) == in_degree.end()) {
+            in_degree[dyad] = dyad_pair;
+
+        }
+        else {
+            //in_degree[dyad].count++;
+            in_degree[dyad].count += pair.second.count;
+        }
+
+    } // end of loop
+
+    // print out Outdegree
+    for (const auto& pair : in_degree) {
+
+        std::cout << pair.second.sender << " Counter " << pair.second.count << std::endl;
+        output_file << pair.second.count << std::endl;
+
+
+    } // end if loop
+    output_file.close();
+} // end of indegree function 
+
+
+void outdegree(std::unordered_map<std::string, DyadPair> pairs) {
+    const std::string file_path = "E:\\paelene project\\save_result\\outdegree.txt"; // file path
+    std::ofstream output_file(file_path, std::ios_base::app); // open file in append mode
+    if (!output_file.is_open()) {
+        std::cout << "Unable to open output file!" << std::endl;
+        return;
+    }
+    output_file << "==============" << std::endl;
+     cout << "======   Outdegree   =============" << endl;
+     cout << endl << endl << endl;
+      // create unordered_map for outdegree
+    std::unordered_map<std::string, DyadPair> out_degree; // key is string and value is a DyadPair object
+    string dyad;
+    DyadPair dyad_pair = {};
+    for (const auto& pair : pairs) { // building outdegree
+        dyad = pair.second.sender;
+
+        dyad_pair = { pair.second.sender ,"", pair.second.count };
+        int i = pair.second.count;
+        
+        if (out_degree.find(dyad) == out_degree.end()) {
+            out_degree[dyad] = dyad_pair;
+
+        }
+        else {
+            //int j = out_degree[dyad].count;
+           // cout << " count " << j + i<< endl;
+            out_degree[dyad].count += pair.second.count;
+        }
+
+
+    } // end of loop
+
+    // print out Outdegree
+    for (const auto& pair : out_degree) {
+
+         std::cout << pair.second.sender << " Counter " << pair.second.count << std::endl;
+        output_file << pair.second.count << std::endl;
+
+    } // end if loop
+
+    output_file.close();
+
+    // You can add your own logic and operations based on your requirements
+} // end outdegree function 
+
+void reciprocity(std::unordered_map<std::string, DyadPair> pairs) {
+    const std::string file_path = "E:\\paelene project\\save_result\\reciprocity.txt"; // file path
+    std::ofstream output_file(file_path, std::ios_base::app); // open file in append mode
+    if (!output_file.is_open()) {
+        std::cout << "Unable to open output file!" << std::endl;
+        return;
+    }
+    output_file << "==============" << std::endl;
+      cout << "======   Reciprocity   =============" << endl;
+
+    cout << endl << endl << endl;
+    for (const auto& pair : pairs) {
+         std::cout << pair.second.reciever << "  " << pair.second.sender << " Counter " << pair.second.count << std::endl;
+        output_file << pair.second.count << std::endl;
+    }
+    output_file.close();
+    // You can add your own logic and operations based on your requirements
+}
+void inertia(std::unordered_map<std::string, DyadPair> pairs) {
+    const std::string file_path = "E:\\paelene project\\save_result\\inertia.txt"; // file path
+    std::ofstream output_file(file_path, std::ios_base::app); // open file in append mode
+    if (!output_file.is_open()) {
+        std::cout << "Unable to open output file!" << std::endl;
+        return;
+    }
+
+    output_file << "==============" << std::endl;
+    cout << "=========== Inertia =============" << endl;
+    for (const auto& entry : pairs) {
+
+        std::cout << entry.second.sender << "," << entry.second.reciever << ", Count: " << entry.second.count << std::endl;
+        output_file << entry.second.count << std::endl;
+    }
+    output_file.close();
+}
+
+
+
+int main()
+{
+    // to delete the content of file before we write the data into the file
+    std::vector<std::string> file_paths = {
+        "E:\\paelene project\\save_result\\inertia.txt",
+        "E:\\paelene project\\save_result\\reciprocity.txt",
+        "E:\\paelene project\\save_result\\outdegree.txt",
+        "E:\\paelene project\\save_result\\indegree.txt",
+        "E:\\paelene project\\save_result\\isp.txt",
+        "E:\\paelene project\\save_result\\osp.txt",
+        "E:\\paelene project\\save_result\\itp.txt",
+        "E:\\paelene project\\save_result\\otp.txt",
+
+    };
+
+    for (const std::string& file_path : file_paths) {
+        std::ofstream output_file(file_path, std::ios_base::trunc);
+        if (!output_file.is_open()) {
+            std::cout << "Unable to open output file!" << std::endl;
+            return 1;
+        }
+        output_file.close();
+    }
+
+    /////////////////////////////
+    // Open input file
+    std::ifstream input_file("E:\\paelene project\\data\\elist_data.csv");
+    if (!input_file.is_open()) {
+        std::cout << "Unable to open input file!" << std::endl;
+        return 1;
+    }
+
+    // Read header line to determine column indices
+    std::string header_line;
+    if (!std::getline(input_file, header_line)) {
+        std::cout << "Unable to read header line!" << std::endl;
+        return 1;
+    }
+
+    std::vector<std::string> headers;
+    std::string current_header;
+    for (char& c : header_line) {
+        if (c == ',') {
+            headers.push_back(current_header);
+            current_header.clear();
+        }
+        else {
+            current_header += c;
+        }
+    }
+    headers.push_back(current_header);
+
+    // Find the column indices for actor1 and actor2
+    int actor1_index = -1;
+    int actor2_index = -1;
+    for (int i = 0; i < headers.size(); i++) {
+        if (headers[i] == "\"actor1\"") {
+            actor1_index = i;
+        }
+        else if (headers[i] == "\"actor2\"") {
+            actor2_index = i;
+        }
+    }
+    if (actor1_index == -1 || actor2_index == -1) {
+        std::cout << "Unable to find actor1 or actor2 columns in file!" << std::endl;
+        return 1;
+    }
+
+    // Read the data and store dyad pairs in a hash table
+    std::unordered_map<std::string, DyadPair> dyad_pairs; // key is string and value is a DyadPair object
+    std::unordered_map<std::string, DyadPair> highest_count_dyads; // key is string and value is a DyadPair object
+    std::string data_line;
+    int event_id = 1; // Initialize event ID
+    int eventNo;
+    cout << "Enter Event Number " << endl;
+    cin >> eventNo;
+    for (int i = 1; i <= eventNo; ++i) {
+       
+        while (std::getline(input_file, data_line) && event_id <= eventNo) {
+
+            // Extract values for actor1 and actor2
+            std::string sender;
+            std::string reciever;
+            std::size_t pos = 0;
+            std::string token;
+            int value_index = 0;
+            while ((pos = data_line.find(',')) != std::string::npos) {
+                token = data_line.substr(0, pos);
+                if (value_index == actor1_index) {
+                    sender = token;
+                } // end of if
+                else if (value_index == actor2_index) {
+                    reciever = token;
+                } // end of else
+                data_line.erase(0, pos + 1);
+                value_index++;
+            } // end of internal while
+            if (value_index == actor2_index) {
+                reciever = data_line;
+            }
+
+            // Store dyad pair with event ID and increment count
+            std::string dyad = "";
+            DyadPair dyad_pair = {};
+            dyad = sender + "," + reciever; // key
+            dyad_pair = { sender, reciever, 1 }; // value
+
+
+            if (dyad_pairs.find(dyad) == dyad_pairs.end()) {
+                dyad_pairs[dyad] = dyad_pair;
+            }
+            else {
+                dyad_pairs[dyad].count++;
+
+            }
+
+            inertia(dyad_pairs);
+            reciprocity(dyad_pairs);
+            outdegree(dyad_pairs);
+            indegree(dyad_pairs);
+            isp(dyad_pairs);
+            osp(dyad_pairs);
+            otp(dyad_pairs);
+            itp(dyad_pairs);
+
+            // Print dyad pair with event ID and count
+            //std::cout << "Event ID: " << event_id << ", Dyad Pair: " << dyad << ", Count: " << dyad_pairs[dyad].count << std::endl;
+            
+            event_id++; // Increment event ID
+        } // end of external while
+
+    }
+
+    // Print the highest count dyad pairs
+    std::cout << "\n\n\n\n=========================" << endl;
+    std::cout << "Dyad pairs with highest count: " << std::endl;
+
+    int size = dyad_pairs.size();
+
+
+    //inertia(dyad_pairs, size);
+    std::cout << "Size: " << dyad_pairs.size() << endl;
+
+
+}
